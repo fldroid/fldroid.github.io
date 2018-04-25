@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2017/03/06/replace-jcenter-to-aliyun-maven/</loc>
+    <lastmod>2017-07-13T02:29:36.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android studio 统一替换JCenter为国内阿里云maven</title>
+        <pubTime>2017-03-06T12:22:00.000Z</pubTime>
+        
+        <tag>编程技巧</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/10/10/viva-la-vida/</loc>
+    <lastmod>2017-04-11T12:50:04.000Z</lastmod>
+    <data>
+        <display>
+        <title>生命万岁</title>
+        <pubTime>2015-10-10T14:46:28.000Z</pubTime>
+        
+        <tag>音乐</tag>
+         
+         
+           
+             
+              <breadCrumb title="音乐" url="http://www.fldroid.com/categories/%E9%9F%B3%E4%B9%90/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/03/18/diff-cookie-session/</loc>
+    <lastmod>2017-03-04T14:39:56.000Z</lastmod>
+    <data>
+        <display>
+        <title>Cookie 和 Session 的区别</title>
+        <pubTime>2016-03-18T14:25:33.000Z</pubTime>
+        
+        <tag>网络请求</tag>
+         
+         
+           
+             
+              <breadCrumb title="网络请求" url="http://www.fldroid.com/categories/%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/12/03/android-cold-start/</loc>
+    <lastmod>2017-03-03T15:55:30.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android冷启动时间优化</title>
+        <pubTime>2015-12-03T14:32:51.000Z</pubTime>
+        
+        <tag>性能优化</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/12/23/quicksort-and-binarysearch/</loc>
+    <lastmod>2017-02-25T04:17:20.000Z</lastmod>
+    <data>
+        <display>
+        <title>二分法查找与快速排序</title>
+        <pubTime>2016-12-23T14:02:57.000Z</pubTime>
+        
+        <tag>算法</tag>
+         
+         
+           
+             
+              <breadCrumb title="数据结构与算法" url="http://www.fldroid.com/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/10/15/analysis-looper-handler-message-thread/</loc>
+    <lastmod>2017-02-16T08:09:50.000Z</lastmod>
+    <data>
+        <display>
+        <title>Looper、Handler、MessageQueue原理及源码解析</title>
+        <pubTime>2016-10-15T13:00:10.000Z</pubTime>
+        
+        <tag>多线程</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/11/15/analysis-amigo-source/</loc>
+    <lastmod>2017-02-15T04:47:45.000Z</lastmod>
+    <data>
+        <display>
+        <title>Amigo 源码解读</title>
+        <pubTime>2016-11-15T14:38:41.000Z</pubTime>
+        
+        <tag>增量更新热修复</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/06/13/symmetric-key%20algorithm-vs-public-key-cryptography/</loc>
+    <lastmod>2017-02-15T04:44:43.000Z</lastmod>
+    <data>
+        <display>
+        <title>对称加密算法 VS 非对称加密算法</title>
+        <pubTime>2016-06-13T13:31:33.000Z</pubTime>
+        
+        <tag>加密解密</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/06/20/osi-tlsssl-https/</loc>
+    <lastmod>2017-02-13T14:36:21.000Z</lastmod>
+    <data>
+        <display>
+        <title>OSI模型，TLS/SSL 及 HTTPS</title>
+        <pubTime>2016-06-20T14:30:19.000Z</pubTime>
+        
+        <tag>加密解密</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/08/07/principle-of-interactive-between-webview-and-javascript/</loc>
+    <lastmod>2017-02-08T09:29:31.000Z</lastmod>
+    <data>
+        <display>
+        <title>JavascriptInterface与WebChromeClient.onJsPrompt()实现的Android Webview与js交互</title>
+        <pubTime>2016-08-07T12:00:40.000Z</pubTime>
+        
+        <tag>Hybrid</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/12/07/diff-of-some-cipher/</loc>
+    <lastmod>2017-02-07T14:57:42.000Z</lastmod>
+    <data>
+        <display>
+        <title>几种常用加密算法比较</title>
+        <pubTime>2015-12-07T14:56:22.000Z</pubTime>
+        
+        <tag>加密解密</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/12/05/sqlcipher-for-android-application-integration/</loc>
+    <lastmod>2017-01-13T15:39:39.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android数据库加密-SQLCipher集成</title>
+        <pubTime>2015-12-05T14:56:22.000Z</pubTime>
+        
+        <tag>加密解密</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/11/21/mi-tv-infrared-control-on-android/</loc>
+    <lastmod>2017-01-13T14:41:18.000Z</lastmod>
+    <data>
+        <display>
+        <title>小米电视的红外控制</title>
+        <pubTime>2015-11-21T14:13:52.000Z</pubTime>
+        
+        <tag>传感器</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/10/09/development-opengles-with-ndk-on-android/</loc>
+    <lastmod>2017-01-13T09:54:15.000Z</lastmod>
+    <data>
+        <display>
+        <title>使用NDK进行OpenGL开发</title>
+        <pubTime>2015-10-09T14:20:43.000Z</pubTime>
+        
+        <tag>自定义View</tag>
+         
+        <tag>图像处理</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/10/31/how-to-use-https-in-android/</loc>
+    <lastmod>2017-01-13T09:52:28.000Z</lastmod>
+    <data>
+        <display>
+        <title>如何在Android上使用Https</title>
+        <pubTime>2015-10-31T09:43:37.000Z</pubTime>
+        
+        <tag>网络请求</tag>
+         
+        <tag>加密解密</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/</loc>
+    <lastmod>2017-01-13T08:15:04.000Z</lastmod>
+    <data>
+        <display>
+        <title>基于 Facebook Redex 实现 Android APK 的压缩和优化</title>
+        <pubTime>2016-05-13T12:18:30.000Z</pubTime>
+        
+        <tag>优化</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/11/13/usage-of-flux-on-android/</loc>
+    <lastmod>2017-01-12T07:54:15.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android Flux Architecture</title>
+        <pubTime>2015-11-13T15:21:44.000Z</pubTime>
+        
+        <tag>设计模式</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/11/06/usage-of-android-staticlayout/</loc>
+    <lastmod>2017-01-12T04:20:54.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android StaticLayout用法</title>
+        <pubTime>2015-11-06T13:27:48.000Z</pubTime>
+        
+        <tag>自定义View</tag>
+         
+        <tag>TextView</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/11/07/some-software-architecture/</loc>
+    <lastmod>2017-01-11T07:11:39.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android软件架构</title>
+        <pubTime>2015-11-07T14:21:26.000Z</pubTime>
+        
+        <tag>设计模式</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/11/01/introduce-pili-streaming-cloud/</loc>
+    <lastmod>2017-01-10T17:20:26.000Z</lastmod>
+    <data>
+        <display>
+        <title>常见直播协议及霹雳云直播介绍</title>
+        <pubTime>2015-11-01T14:39:33.000Z</pubTime>
+        
+        <tag>直播</tag>
+         
+         
+           
+             
+              <breadCrumb title="Android" url="http://www.fldroid.com/categories/Android/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/10/16/lean-uml-fast/</loc>
+    <lastmod>2017-01-09T15:53:27.000Z</lastmod>
+    <data>
+        <display>
+        <title>UML类图极速入门</title>
+        <pubTime>2015-10-16T07:58:59.000Z</pubTime>
+        
+        <tag>UML与设计模式</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://www.fldroid.com/2015/10/20/build-private-android-sdk-mirror/</loc>
+    <lastmod>2017-01-09T14:55:04.000Z</lastmod>
+    <data>
+        <display>
+        <title>Android SDK Mirror搭建和使用</title>
+        <pubTime>2015-10-20T14:15:33.000Z</pubTime>
+        
+        <tag>基础服务搭建</tag>
+         
+         
+           
+        </display>
+    </data>
+    </url>
+
+    
+</urlset>

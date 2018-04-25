@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.2.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.2.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.2.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.2.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.2.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.2.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":true,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="现在 hotfix 框架有很多，原理大同小异，基本上是基于qq空间这篇文章 或者微信的方案。可惜的是微信的 Tinker 以及 QZone 都没有将其具体实现开源出来，只是在文章中分析了现有各个 hotfix 框架的优缺点以及他们的实现方案。Amigo 原理与 Tinker 基本相同，但是在 Tinker 的基础上，进一步实现了 so 文件、资源文件、Activity、BroadcastRecei">
+<meta name="keywords" content="增量更新热修复">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Amigo 源码解读">
+<meta property="og:url" content="http://www.fldroid.com/2016/11/15/analysis-amigo-source/index.html">
+<meta property="og:site_name" content="fldroid">
+<meta property="og:description" content="现在 hotfix 框架有很多，原理大同小异，基本上是基于qq空间这篇文章 或者微信的方案。可惜的是微信的 Tinker 以及 QZone 都没有将其具体实现开源出来，只是在文章中分析了现有各个 hotfix 框架的优缺点以及他们的实现方案。Amigo 原理与 Tinker 基本相同，但是在 Tinker 的基础上，进一步实现了 so 文件、资源文件、Activity、BroadcastRecei">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-02-15T04:47:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Amigo 源码解读">
+<meta name="twitter:description" content="现在 hotfix 框架有很多，原理大同小异，基本上是基于qq空间这篇文章 或者微信的方案。可惜的是微信的 Tinker 以及 QZone 都没有将其具体实现开源出来，只是在文章中分析了现有各个 hotfix 框架的优缺点以及他们的实现方案。Amigo 原理与 Tinker 基本相同，但是在 Tinker 的基础上，进一步实现了 so 文件、资源文件、Activity、BroadcastRecei">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="fldroid" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="http://www.fldroid.com/2016/11/15/analysis-amigo-source/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Amigo 源码解读 | fldroid</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">fldroid</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">群山苍翠。加油站孤零零的。入山之前，托马斯停车加油。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档<span class="badge">22</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类<span class="badge">4</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签<span class="badge">18</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-commonweal">
+    <a href="/404.html" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />公益 404</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fldroid.com/2016/11/15/analysis-amigo-source/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fldroid">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fldroid">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Amigo 源码解读
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2016-11-15 22:38:41" itemprop="dateCreated datePublished" datetime="2016-11-15T22:38:41+08:00">2016-11-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2017-02-15 12:47:45" itemprop="dateModified" datetime="2017-02-15T12:47:45+08:00">2017-02-15</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/11/15/analysis-amigo-source/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2016/11/15/analysis-amigo-source/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon"
+            >
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>现在 hotfix 框架有很多，原理大同小异，基本上是基于<a href="https://mp.weixin.qq.com/s?__biz=MzI1MTA1MzM2Nw==&amp;mid=400118620&amp;idx=1&amp;sn=b4fdd5055731290eef12ad0d17f39d4a" target="_blank" rel="noopener">qq空间这篇文章</a> 或者<a href="http://mp.weixin.qq.com/s?__biz=MzAwNDY1ODY2OQ==&amp;mid=2649286306&amp;idx=1&amp;sn=d6b2865e033a99de60b2d4314c6e0a25&amp;scene=1&amp;srcid=0811AOttpqUnh1Wu5PYcXbnZ#rd" target="_blank" rel="noopener">微信的方案</a>。可惜的是微信的 Tinker 以及 QZone 都没有将其具体实现开源出来，只是在文章中分析了现有各个 hotfix 框架的优缺点以及他们的实现方案。Amigo 原理与 Tinker 基本相同，但是在 Tinker 的基础上，进一步实现了 so 文件、资源文件、Activity、BroadcastReceiver 的修复，几乎可以号称全面修复，不愧Amigo（朋友）这个称号，能在危急时刻送来全面的帮助。</p>
+<p>在<code>Amigo</code>这个类中实现了主要的修复工作。我们一起追追看，到底是怎样的实现。</p>
+<p><strong>Amigo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (demoAPk.exists() &amp;&amp; isSignatureRight(<span class="keyword">this</span>, demoAPk)) &#123;</span><br><span class="line">	 SharedPreferences sp = getSharedPreferences(SP_NAME, MODE_MULTI_PROCESS);</span><br><span class="line">	 String demoApkChecksum = checksum(demoAPk);</span><br><span class="line">	 <span class="keyword">boolean</span> isFirstRun = !sp.getString(NEW_APK_SIG, <span class="string">""</span>).equals(demoApkChecksum);</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>这段代码中，首先检查是否有补丁包，并且签名正确，如果正确，则通过检验校验和是否与之前的检验和相同，不同则为检测到新的补丁包。</p>
+<h2 id="释放Apk"><a href="#释放Apk" class="headerlink" title="释放Apk"></a>释放Apk</h2><p>当这是新的补丁包时，首先第一件事就是释放。<code>ApkReleaser.work(this, layoutId, themeId)</code>在这个方法中最终会去开启一个 ApkReleaseActivity，而这个 Activity 的layout 和 theme 就是之前从配置中解析出来，在 work 方法中传进来的layoutId 和 themeId。</p>
+<p><strong>ApkReleaseActivity.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">(Bundle savedInstanceState)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">super</span>.onCreate(savedInstanceState);</span><br><span class="line">	...</span><br><span class="line"></span><br><span class="line">   <span class="keyword">new</span> Thread() &#123;</span><br><span class="line">       <span class="meta">@Override</span></span><br><span class="line">       <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">           <span class="keyword">super</span>.run();</span><br><span class="line"></span><br><span class="line">           DexReleaser.releaseDexes(demoAPk.getAbsolutePath(), dexDir.getAbsolutePath());</span><br><span class="line">           NativeLibraryHelperCompat.copyNativeBinaries(demoAPk, nativeLibraryDir);</span><br><span class="line">           dexOptimization();</span><br><span class="line"></span><br><span class="line">           handler.sendEmptyMessage(WHAT_DEX_OPT_DONE);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在 ApkReleaseActivity 的 <code>onCreate()</code> 方法中会开启一个线程去进行一系列的释放操作，这些操作十分耗时，目前在不同的机子上测试，从几秒到二十几秒之间不等，如果就这样黑屏在用户前面未免太不优雅，所以 Amigo 开启了一个新的进程，启动这个 Activity。<br>在这个线程中，做了三件微小的事情：</p>
+<ul>
+<li>释放 Dex 到指定目录</li>
+<li><p>拷贝 so 文件到 Amigo 的指定目录下<br>拷贝 so 文件是通过反射去调用 <code>NativeLibraryHelper</code>这个类的<code>nativeCopyNativeBinaries()</code>方法，但这个方法在不同版本上有不同的实现。</p>
+<pre><code>* 如果版本号在21以下
+
+    **NativeLibraryHelper**
+
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public static int copyNativeBinariesIfNeededLI(File apkFile, File sharedLibraryDir) &#123;</span><br><span class="line">       final String cpuAbi = Build.CPU_ABI;</span><br><span class="line">       final String cpuAbi2 = Build.CPU_ABI2;</span><br><span class="line">       return nativeCopyNativeBinaries(apkFile.getPath(), sharedLibraryDir.getPath(), cpuAbi,</span><br><span class="line">               cpuAbi2);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+    会去反射调用这个方法，其中系统会自动判断出 primaryAbi 和 secondAbi。
+</code></pre><ul>
+<li><p>如果版本号在21以上<br><code>copyNativeBinariesIfNeededLI(file, file)</code>这个方法已经被废弃了，需要去反射调用这个方法</p>
+<p>  <strong>NativeLibraryHelper</strong></p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public static int copyNativeBinaries(Handle handle, File sharedLibraryDir, String abi) &#123;</span><br><span class="line">       for (long apkHandle : handle.apkHandles) &#123;</span><br><span class="line">           int res = nativeCopyNativeBinaries(apkHandle, sharedLibraryDir.getPath(), abi,</span><br><span class="line">                   handle.extractNativeLibs, HAS_NATIVE_BRIDGE);</span><br><span class="line">           if (res != INSTALL_SUCCEEDED) &#123;</span><br><span class="line">               return res;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       return INSTALL_SUCCEEDED;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>  所以首先得去获得一个<code>NativeLibraryHelper$Handle</code>类的实例。之后就是找 primaryAbi。Amigo 先对机器的位数做了判断，如果是64位的机子，就只找64位的 abi，如果是32位的，就只找32位的 abi。然后将 Handle 实例当做参数去调用<code>NativeLibraryHelper</code>的<code>findSupportedAbi</code>来获得primaryAbi。最后再去调用<code>copyNativeBinaries</code>去拷贝 so 文件。</p>
+<p>对于 so 文件加载的原理可以参考<a href="http://mp.weixin.qq.com/s?__biz=MzA3NTYzODYzMg==&amp;mid=2653577702&amp;idx=1&amp;sn=1288c77cd8fc2db68dc92cf18d675ace&amp;scene=4#wechat_redirect" target="_blank" rel="noopener">这篇文章</a></p>
+</li>
+</ul>
+</li>
+<li><p>优化 dex 文件</p>
+<p>  <strong>ApkReleaseActivity.java</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">dexOptimization</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	...</span><br><span class="line">       <span class="keyword">for</span> (File dex : validDexes) &#123;</span><br><span class="line">           <span class="keyword">new</span> DexClassLoader(dex.getAbsolutePath(), optimizedDir.getAbsolutePath(), <span class="keyword">null</span>, DexUtils.getPathClassLoader());</span><br><span class="line">           Log.e(TAG, <span class="string">"dexOptimization finished--&gt;"</span> + dex);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<p>  DexClassLoader 没有做什么事情，只是调用了父类构造器，他的父类是 BaseDexClassLoader。在 BaseDexClassLoader 的构造器中又去构造了一个DexPathList 对象。<br>  在<code>DexPathList</code>类中，有一个 Element 数组</p>
+<p>  <strong>DexPathList</strong></p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/** list of dex/resource (class path) elements */</span><br><span class="line">private final Element[] dexElements;</span><br></pre></td></tr></table></figure>
+<p>  Element 就是对 Dex 的封装。所以一个 Element 对应一个 Dex。这个 Element 在后文中会提到。</p>
+<p>优化 dex 只需要在构造 DexClassLoader 对象的时候将 dex 的路径传进去，系统会在最后会通过<code>DexFile</code>的</p>
+<p><strong>DexFile.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">native</span> <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">openDexFile</span><span class="params">(String sourceName, String outputName,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">int</span> flags)</span> <span class="keyword">throws</span> IOException</span>;</span><br></pre></td></tr></table></figure>
+<p> 来这个方法来加载 dex，加载的同时会对其做优化处理。</p>
+</li>
+</ul>
+<p>这三项操作完成之后，通知优化完毕，之后就关闭这个进程，将补丁包的校验和保存下来。这样第一步释放 Apk 就完成了。之后就是重头戏替换修复。</p>
+<h2 id="替换修复"><a href="#替换修复" class="headerlink" title="替换修复"></a>替换修复</h2><p>###替换classLoader</p>
+<p>Amigo 先行构造一个<code>AmigoClassLoader</code>对象，这个<code>AmigoClassLoader</code>是一个继承于<code>PathClassLoader</code>的类，把补丁包的 Apk 路径作为参数来构造<code>AmigoClassLoader</code>对象，之后通过反射替换掉 LoadedApk 的 ClassLoader。这一步是 Amigo 的关键所在。</p>
+<p>###替换Dex</p>
+<p>之前提到，每个 dex 文件对应于一个<code>PathClassLoader</code>，其中有一个 Element[]，Element 是对于 dex 的封装。</p>
+<p><strong>Amigo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setDexElements</span><span class="params">(ClassLoader classLoader)</span> <span class="keyword">throws</span> NoSuchFieldException, IllegalAccessException </span>&#123;</span><br><span class="line">   Object dexPathList = getPathList(classLoader);</span><br><span class="line">   File[] listFiles = dexDir.listFiles();</span><br><span class="line"></span><br><span class="line">   List&lt;File&gt; validDexes = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">   <span class="keyword">for</span> (File listFile : listFiles) &#123;</span><br><span class="line">       <span class="keyword">if</span> (listFile.getName().endsWith(<span class="string">".dex"</span>)) &#123;</span><br><span class="line">           validDexes.add(listFile);</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   File[] dexes = validDexes.toArray(<span class="keyword">new</span> File[validDexes.size()]);</span><br><span class="line">   Object originDexElements = readField(dexPathList, <span class="string">"dexElements"</span>);</span><br><span class="line">   Class&lt;?&gt; localClass = originDexElements.getClass().getComponentType();</span><br><span class="line">   <span class="keyword">int</span> length = dexes.length;</span><br><span class="line">   Object dexElements = Array.newInstance(localClass, length);</span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k &lt; length; k++) &#123;</span><br><span class="line">       Array.set(dexElements, k, getElementWithDex(dexes[k], optimizedDir));</span><br><span class="line">   &#125;</span><br><span class="line">   writeField(dexPathList, <span class="string">"dexElements"</span>, dexElements);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在替换dex时，Amigo 将补丁包中每个 dex 对应的 Element 对象拿出来，之后组成新的 Element[]，通过反射，将现有的 Element[] 数组替换掉。<br>在 QZone 的实现方案中，他们是通过将新的 dex 插到 Element[] 数组的第一个位置，这样就会先加载新的 dex ，微信的方案是下发一个 DiffDex，然后在运行时与旧的 dex 合成一个新的 dex。但是 Amigo 是下发一个完整的 dex直接替换掉了原来的 dex。与其他的方案相比，Amigo 因为直接替换原来的 dex ,兼容性更好，能够支持修复的方面也更多。但是这也导致了 Amigo 的补丁包会较大，当然，也可以发一个利用 BsDiff 生成的差分包，在本地合成新的 apk 之后再放到 Amigo 的指定目录下。</p>
+<p>###替换动态链接库</p>
+<p><strong>Amigo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">setNativeLibraryDirectories</span><span class="params">(AmigoClassLoader hackClassLoader)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, NoSuchFieldException </span>&#123;</span><br><span class="line">   injectSoAtFirst(hackClassLoader, nativeLibraryDir.getAbsolutePath());</span><br><span class="line">   nativeLibraryDir.setReadOnly();</span><br><span class="line">   File[] libs = nativeLibraryDir.listFiles();</span><br><span class="line">   <span class="keyword">if</span> (libs != <span class="keyword">null</span> &amp;&amp; libs.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">       <span class="keyword">for</span> (File lib : libs) &#123;</span><br><span class="line">           lib.setReadOnly();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>so 文件的替换跟 QZone 替换 dex 原理相差不多，也是利用 ClassLoader 加载 library 的时候，将新的 library 加到数组前面，保证先加载的是新的 library。但是这里会有几个小坑。</p>
+<p><strong>DexUtils.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">injectSoAtFirst</span><span class="params">(ClassLoader hackClassLoader, String soPath)</span> <span class="keyword">throws</span> NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InstantiationException </span>&#123;</span><br><span class="line">        Object[] baseDexElements = getNativeLibraryDirectories(hackClassLoader);</span><br><span class="line">        Object newElement;</span><br><span class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;</span><br><span class="line">            Constructor constructor = baseDexElements[<span class="number">0</span>].getClass().getConstructors()[<span class="number">0</span>];</span><br><span class="line">            constructor.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">            Class&lt;?&gt;[] parameterTypes = constructor.getParameterTypes();</span><br><span class="line">            Object[] args = <span class="keyword">new</span> Object[parameterTypes.length];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; parameterTypes.length; i++) &#123;</span><br><span class="line">                <span class="keyword">if</span> (parameterTypes[i] == File.class) &#123;</span><br><span class="line">                    args[i] = <span class="keyword">new</span> File(soPath);</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (parameterTypes[i] == <span class="keyword">boolean</span>.class) &#123;</span><br><span class="line">                    args[i] = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            newElement = constructor.newInstance(args);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            newElement = <span class="keyword">new</span> File(soPath);</span><br><span class="line">        &#125;</span><br><span class="line">        Object newDexElements = Array.newInstance(baseDexElements[<span class="number">0</span>].getClass(), <span class="number">1</span>);</span><br><span class="line">        Array.set(newDexElements, <span class="number">0</span>, newElement);</span><br><span class="line">        Object allDexElements = combineArray(newDexElements, baseDexElements);</span><br><span class="line">        Object pathList = getPathList(hackClassLoader);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;</span><br><span class="line">            writeField(pathList, <span class="string">"nativeLibraryPathElements"</span>, allDexElements);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            writeField(pathList, <span class="string">"nativeLibraryDirectories"</span>, allDexElements);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>注入 so 文件到数组时，会发现在不同的版本上封装 so 文件的是不同的类，在版本23以下，是File</p>
+<p><strong>DexPathList.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** list of native library directory elements */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> File[] nativeLibraryDirectories;</span><br></pre></td></tr></table></figure>
+<p>在23以上却是改成了Element</p>
+<p><strong>DexPathList.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/** List of native library path elements. */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> Element[] nativeLibraryPathElements;</span><br></pre></td></tr></table></figure>
+<p>因此在23以上，Amigo 通过反射去构造一个 Element 对象。之后就是将 so 文件插到数组的第一个位置就行了。<br>第二个小坑是nativeLibraryDir要设置成readOnly。</p>
+<p><strong>DexPathList.java</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public String findNativeLibrary(String name) &#123;</span><br><span class="line">	  maybeInit();</span><br><span class="line">	  if (isDirectory) &#123;</span><br><span class="line">	      String path = new File(dir, name).getPath();</span><br><span class="line">	      if (IoUtils.canOpenReadOnly(path)) &#123;</span><br><span class="line">	          return path;</span><br><span class="line">	      &#125;</span><br><span class="line">	  &#125; else if (zipFile != null) &#123;</span><br><span class="line">	      String entryName = new File(dir, name).getPath();</span><br><span class="line">	      if (isZipEntryExistsAndStored(zipFile, entryName)) &#123;</span><br><span class="line">	        return zip.getPath() + zipSeparator + entryName;</span><br><span class="line">	      &#125;</span><br><span class="line">	  &#125;</span><br><span class="line">	  return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在ClassLoader 去寻找本地库的时候，如果 so 文件没有设置成ReadOnly的话是会不会返回路径的，这样就会报错了。</p>
+<p>###替换资源文件</p>
+<p><strong>Amigo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">AssetManager assetManager = AssetManager.class.newInstance();</span><br><span class="line">Method addAssetPath = getDeclaredMethod(AssetManager.class, <span class="string">"addAssetPath"</span>, String.class);</span><br><span class="line">addAssetPath.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">addAssetPath.invoke(assetManager, demoAPk.getAbsolutePath());</span><br><span class="line">setAPKResources(assetManager)</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>想要更新资源文件，只需要更新<code>Resource</code>中的 AssetManager 字段。<code>AssetManager</code>提供了一个方法<code>addAssetPath</code>。将新的资源文件路径加到<code>AssetManager</code>中就可以了。在不同的 configuration 下，会对应不同的 Resource 对象，所以通过 ResourceManager 拿到所有的 configuration 对应的 resource 然后替换其 assetManager。</p>
+<p>###替换原有 Application</p>
+<p><strong>Amigo.java</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">Class acd = classLoader.loadClass(<span class="string">"me.ele.amigo.acd"</span>);</span><br><span class="line">String applicationName = (String) readStaticField(acd, <span class="string">"n"</span>);</span><br><span class="line">Application application = (Application) classLoader.loadClass(applicationName).newInstance();</span><br><span class="line">Method attach = getDeclaredMethod(Application.class, <span class="string">"attach"</span>, Context.class);</span><br><span class="line">attach.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">attach.invoke(application, getBaseContext());</span><br><span class="line">setAPKApplication(application);</span><br><span class="line">application.onCreate();</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>在编译过程中，Amigo 的插件将 app 的 application 替换成了 Amigo，并且将原来的 application 的 name 保存在了一个名为<code>acd</code>的类中，该修复的都修复完了是时候将原来的 application 替换回来了。拿到原有 Application 名字之后先调用 application 的<code>attach(context)</code>，然后将 application 设回到 loadedApk 中，最后调用<code>oncreate()</code>，执行原有 Application 中的逻辑。<br>这之后，一个修复完的 app 就出现在用户面前。优秀的库~</p>
+<h2 id="Amigo-插件"><a href="#Amigo-插件" class="headerlink" title="Amigo 插件"></a>Amigo 插件</h2><p>前文提到 Amigo 在编译期利用插件替换了 app 原有的 application，那这一个操作是怎么实现的呢？</p>
+<p><strong>AmigoPlugin.groovy</strong></p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">File manifestFile = output.processManifest.manifestOutputFile</span><br><span class="line">                        <span class="keyword">def</span> manifest = <span class="keyword">new</span> XmlParser().parse(manifestFile)</span><br><span class="line">                        <span class="keyword">def</span> androidTag = <span class="keyword">new</span> Namespace(<span class="string">"http://schemas.android.com/apk/res/android"</span>, <span class="string">'android'</span>)</span><br><span class="line">                        applicationName = manifest.application[<span class="number">0</span>].attribute(androidTag.name)</span><br><span class="line">                        manifestFile.text = manifestFile.text.replace(applicationName, <span class="string">"me.ele.amigo.Amigo"</span>)</span><br></pre></td></tr></table></figure>
+<p>首先，Amigo Plugin 将 AndroidManifest.xml 文件中的applicationName 替换成 Amigo。</p>
+<p><strong>AmigoPlugin.groovy</strong></p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Node node = (<span class="keyword">new</span> XmlParser()).parse(manifestFile)</span><br><span class="line">Node appNode = <span class="literal">null</span></span><br><span class="line"><span class="keyword">for</span> (Node <span class="string">n :</span> node.children()) &#123;</span><br><span class="line">   <span class="keyword">if</span> (n.name().equals(<span class="string">"application"</span>)) &#123;</span><br><span class="line">       appNode = n;</span><br><span class="line">       <span class="keyword">break</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line">Node hackAppNode = <span class="keyword">new</span> Node(appNode, <span class="string">"activity"</span>)</span><br><span class="line">hackAppNode.attributes().put(<span class="string">"android:name"</span>, applicationName)</span><br><span class="line">manifestFile.text = XmlUtil.serialize(node)</span><br></pre></td></tr></table></figure>
+<p>之后，Amigo Plugin 做了很 hack 的一步，就是在 AndroidManifest.xml 中将原来的 application 做为一个 Activity 。我们知道 MultiDex 分包的规则中，一定会将 Activity 放到主 dex 中，Amigo Plugin 为了保证原来的 application 被替换后仍然在主 dex 中，就做了这个十分 hack 的一步。机智的少年。</p>
+<p>接下来会再去判断是否开启了混淆，如果有混淆的话，查找 mapping 文件，将 applicationName 字段换成混淆后的名字。</p>
+<p>下一步会去执行 GenerateCodeTask，在这个 task 中会生成一个 Java 文件，这个文件就是上文提到过得<code>acd.java</code>，并且将模板中的 appName 替换成applicationName。<br>然后执行 javaCompile task，编译 Java 代码。<br>最后还要做一件事，就是修改 maindexlist.txt。被定义在这个文件中的类会被加到主 dex 中，所以 Amigo plugin 在<code>collectMultiDexInfo</code>方法中扫描加到主 dex 的类，然后再在扫描的结果中加上 acd.class，把这些内容全部加到 maindexlist.txt。到此Amigo plugin 的任务就完成了。<br>Amigo plugin 的主要目的是在编译期用 amigo 替换掉原来的 application，但是还得保存下来这个 application，因为之后还得在运行时将这个 application 替换回来。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Amigo 几乎实现了全方位的修复，通过替换 ClassLoader，直接全量替换 dex 的思路，保证了兼容性，成功率，但是可能下发的补丁包会比较大。还有一点 Amigo 的精彩之处就是利用 Amigo 替换了 app 原有的 application，这一点保证了 Amigo 连 application 都能修复。以后可能唯一不能修复的就是 Amigo 自身了。</p>
+<p>最后我们比较下目前几个 hotfix 方案：</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>Amigo</th>
+<th>Tinker</th>
+<th>nuwa/QZone</th>
+<th>AndFix</th>
+<th>Dexposed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>类替换</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>lib替换</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>资源替换</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>全平台支持</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>即时生效</td>
+<td>optional</td>
+<td>no</td>
+<td>no</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>性能损耗</td>
+<td>无</td>
+<td>较小</td>
+<td>较大</td>
+<td>较小</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>补丁包大小</td>
+<td>较大</td>
+<td>较小</td>
+<td>较大</td>
+<td>一般</td>
+<td>一般</td>
+</tr>
+<tr>
+<td>开发透明</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>复杂度</td>
+<td>无</td>
+<td>较低</td>
+<td>较低</td>
+<td>复杂</td>
+<td>复杂</td>
+</tr>
+<tr>
+<td>gradle支持</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>no</td>
+</tr>
+<tr>
+<td>接口文档</td>
+<td>丰富</td>
+<td>丰富</td>
+<td>一般</td>
+<td>一般</td>
+<td>较少</td>
+</tr>
+<tr>
+<td>占Rom体积</td>
+<td>较大</td>
+<td>较大</td>
+<td>较小</td>
+<td>较小</td>
+<td>较小</td>
+</tr>
+<tr>
+<td>成功率</td>
+<td>100%</td>
+<td>较好</td>
+<td>很高</td>
+<td>一般</td>
+<td>一般</td>
+</tr>
+</tbody>
+</table>
+<p>from <a href="https://github.com/eleme/Amigo/blob/master/blog.md" target="_blank" rel="noopener">https://github.com/eleme/Amigo/blob/master/blog.md</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>fldroid</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fldroid.com/2016/11/15/analysis-amigo-source/" title="Amigo 源码解读">http://www.fldroid.com/2016/11/15/analysis-amigo-source/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/增量更新热修复/" rel="tag"># 增量更新热修复</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/15/analysis-looper-handler-message-thread/" rel="next" title="Looper、Handler、MessageQueue原理及源码解析">
+                <i class="fa fa-chevron-left"></i> Looper、Handler、MessageQueue原理及源码解析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/12/23/quicksort-and-binarysearch/" rel="prev" title="二分法查找与快速排序">
+                二分法查找与快速排序 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- Go to www.addthis.com/dashboard to customize your tools -->
+<div class="addthis_inline_share_toolbox">
+  <script type = "text/javascript" src = "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5ae0274c305e7e15" async = "async" ></script>
+</div>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">fldroid</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fldroid" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://weibo.com/p/1005052084548123" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.jianshu.com/users/7b421c095afd" target="_blank" title="Jianshu"><i class="fa fa-fw fa-book"></i>Jianshu</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:chaos.yee@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.linux.cn/" title="Linux.中国" target="_blank">Linux.中国</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.jcodecraeer.com/" title="泡在网上的日子" target="_blank">泡在网上的日子</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#释放Apk"><span class="nav-number">1.</span> <span class="nav-text">释放Apk</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替换修复"><span class="nav-number">2.</span> <span class="nav-text">替换修复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Amigo-插件"><span class="nav-number">3.</span> <span class="nav-text">Amigo 插件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">copyright all rights reserved</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Gemini</a> v6.2.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.2.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.2.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.2.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.2.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.2.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.2.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.2.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://fldroid.disqus.com/count.js" async></script>
+  
+
+  
+    <script type="text/javascript">
+      var disqus_config = function () {
+        this.page.url = 'http://www.fldroid.com/2016/11/15/analysis-amigo-source/';
+        this.page.identifier = '2016/11/15/analysis-amigo-source/';
+        this.page.title = 'Amigo 源码解读';
+      };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://fldroid.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        loadComments();
+      
+    </script>
+  
+
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=6.2.0"></script>
+
+
+  
+  
+  
+  <script src="/lib/bookmark/bookmark.min.js?v=1.0"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+</body>
+</html>

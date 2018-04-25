@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=6.2.0" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.2.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.2.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.2.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.2.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '6.2.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    fastclick: true,
+    lazyload: true,
+    tabs: true,
+    motion: {"enable":true,"async":true,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="随着世界各地越来越多的人开始登录Facebook，我们有越来越大的责任保证她的快捷使用性。在发展中地区尤为如此，其中旧设备在市场上滞留的时间变长，人们对新设备的升级周期同样页边长了。我们希望确保我们的程序在所有主要移动平台上改进性能的可能的方法。 Android是我们最大的平台之一，它也是具有很大的多样性设备的移动平台。在这些设备上的任何性能或效率改进都可以更好地为全世界数百万人的体验到。 今天">
+<meta name="keywords" content="优化">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于 Facebook Redex 实现 Android APK 的压缩和优化">
+<meta property="og:url" content="http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/index.html">
+<meta property="og:site_name" content="fldroid">
+<meta property="og:description" content="随着世界各地越来越多的人开始登录Facebook，我们有越来越大的责任保证她的快捷使用性。在发展中地区尤为如此，其中旧设备在市场上滞留的时间变长，人们对新设备的升级周期同样页边长了。我们希望确保我们的程序在所有主要移动平台上改进性能的可能的方法。 Android是我们最大的平台之一，它也是具有很大的多样性设备的移动平台。在这些设备上的任何性能或效率改进都可以更好地为全世界数百万人的体验到。 今天">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_binary_code_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_compile_java_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_optimize_pip_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_java_to_n_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_n_to_java_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_obj_0113.png">
+<meta property="og:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_function_0113.png">
+<meta property="og:updated_time" content="2017-01-13T08:15:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于 Facebook Redex 实现 Android APK 的压缩和优化">
+<meta name="twitter:description" content="随着世界各地越来越多的人开始登录Facebook，我们有越来越大的责任保证她的快捷使用性。在发展中地区尤为如此，其中旧设备在市场上滞留的时间变长，人们对新设备的升级周期同样页边长了。我们希望确保我们的程序在所有主要移动平台上改进性能的可能的方法。 Android是我们最大的平台之一，它也是具有很大的多样性设备的移动平台。在这些设备上的任何性能或效率改进都可以更好地为全世界数百万人的体验到。 今天">
+<meta name="twitter:image" content="http://7xv27j.com1.z0.glb.clouddn.com/redex_binary_code_0113.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="fldroid" type="application/atom+xml" />
+
+
+
+
+  <link rel="canonical" href="http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/"/>
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>基于 Facebook Redex 实现 Android APK 的压缩和优化 | fldroid</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">fldroid</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">群山苍翠。加油站孤零零的。入山之前，托马斯停车加油。</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br />首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />归档<span class="badge">22</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br />分类<span class="badge">4</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />标签<span class="badge">18</span></a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br />关于</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-commonweal">
+    <a href="/404.html" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-heartbeat"></i> <br />公益 404</a>
+  </li>
+
+      
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />搜索</a>
+        </li>
+      
+    </ul>
+  
+
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+    <div class="reading-progress-bar"></div>
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="fldroid">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="fldroid">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">基于 Facebook Redex 实现 Android APK 的压缩和优化
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2016-05-13 20:18:30" itemprop="dateCreated datePublished" datetime="2016-05-13T20:18:30+08:00">2016-05-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2017-01-13 16:15:04" itemprop="dateModified" datetime="2017-01-13T16:15:04+08:00">2017-01-13</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Android/" itemprop="url" rel="index"><span itemprop="name">Android</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2016/05/13/optimizing-android-bytecode-with-redex/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2016/05/13/optimizing-android-bytecode-with-redex/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon"
+            >
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_binary_code_0113.png" alt="image"></p>
+<p>随着世界各地越来越多的人开始登录Facebook，我们有越来越大的责任保证她的快捷使用性。在发展中地区尤为如此，其中旧设备在市场上滞留的时间变长，人们对新设备的升级周期同样页边长了。我们希望确保我们的程序在所有主要移动平台上改进性能的可能的方法。</p>
+<p>Android是我们最大的平台之一，它也是具有很大的多样性设备的移动平台。在这些设备上的任何性能或效率改进都可以更好地为全世界数百万人的体验到。</p>
+<p>今天，我们想分享一些我们的努力，通过一个我们称之为Redex的项目来优化Android的Java字节码。Redex是一个用于优化Android .dex文件的管道。通过应用一系列可定制的转换，使得在源.dex在被合并到APK之前被优化。</p>
+<a id="more"></a>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_compile_java_0113.png" alt="image"></p>
+<p>在我们的优化项目开始时，我们决定做最优化的最佳优化切入点是在创建.dex文件之后和将.dex文件组装到APK之前。在字节码级别（而不是直接在源代码上）执行我们的优化，这样的优点是，它使我们能够在整个全局的二进制文件上执行类间优化，而不是仅仅执行本地类级别优化。我们选择对dex字节码而不是Java字节码执行变换，因为某些变换只能在DX之后完成。这将类似于C风格编译过程中的后链接阶段，您可以在整个二进制文件中进行全局优化。</p>
+<p>我们意识到工程师可能会继续提出新的和创造性的字节码优化随着时间的推移。Facebook工程师往往快速移动，所以我们想要构建一个能从多个工程师工作的许多优化的好处。我们将我们的优化管道组织为一系列阶段，其中“原始”.dex在管道的开始处进入，并且“转换的”.dex在结束处离开。流水线中的每个阶段都可以被认为是一个独立的“优化插件”，它在前一阶段之后捕捉到位置，允许我们将多个不同的，可能无关的变换链接在一起。这使得它从工程角度来说非常灵活，因为多个工程师可以并行地尝试不同的优化，然后只有当它们准备就绪时才将它们插入最终管道。</p>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_optimize_pip_0113.png" alt="image"></p>
+<p>Redex管道被推广以允许任何种类的.dex变换，但是今天我们要专注于使用Redex来最小化APK中的字节码。</p>
+<h2 id="减少字节码"><a href="#减少字节码" class="headerlink" title="减少字节码"></a>减少字节码</h2><p>在传输应用程序中减少字节码的数量有很多好的方法。在发展中国家，闪存大小通常限于保持设备成本可承受 - 即使是几兆字节，也可以在少于1 GB的存储空间的手机上产生影响。更少的字节也意味着更快的下载时间，更快的安装时间，并降低单元用户的数据使用。最后，较少的字节码通常也转化为更快的运行时性能。所有其他条件相同，较少的字节码意味着更少的执行指令和更少的代码页故障进入内存，这将是资源密集型场景（如应用程序冷启动）的性能改进。</p>
+<p>在这个项目的开始，我们开始查看使用默认编译工具链生成的一些原始.dex文件。当我们盯着字节码时，我们开始找到一些我们可以用Redex优化的常见模式。让我们来看看我们添加到管道以减少.dex文件大小的几个优化阶段。</p>
+<h2 id="缩小和压缩"><a href="#缩小和压缩" class="headerlink" title="缩小和压缩"></a>缩小和压缩</h2><p>通常对诸如Javascript和HTML之类的网络语言进行缩小以通过在不改变功能的情况下减少和最小化字符串来减少字节。这些技术在Java中有较好效。</p>
+<p>字符串在开发期间对于工程师是非常有价值的 - 例如类路径，源文件的文件路径，函数名等等 - 但是字符串在编译的字节码中实际占用了很多字节。此外，运行时通常不关心这些描述性命名的字符串：它将调用函数“abc（）”就像调用函数“MyFooSuccessCallback（）”一样容易。</p>
+<p>因此，我们通常可以用任何（较短的）占位符字符串来替换长的人类可读的字符串。这减少了专用于字符串而不影响应用程序功能的字节数。</p>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_java_to_n_0113.png" alt="image"></p>
+<p>There are some qualifications to this, though. Source file paths, while not explicitly necessary for code execution at runtime, are extremely useful for engineers when something goes wrong. If we were to replace them with some short but random placeholder string, or even to strip them out entirely, we’d lose an important hint when following up on bug reports.</p>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_n_to_java_0113.png" alt="image"></p>
+<p>和纯缩小一样，我们可以通过我们的.dex并用一个较短的占位符字符串替换文件路径字符串。然而，我们需要保持反向映射到原始字符串，所以我们可以重建文件的路径来源，当我们需要它们，例如在错误报告。我们实际上不需要在APK本身中发送这个反向映射，因为对于所有实际目的，它将永远不会被现场的机器代码使用，所以这最终是我们的发运APK大小的改进。</p>
+<h2 id="内联"><a href="#内联" class="headerlink" title="内联"></a>内联</h2><p>内联是用于将被调用函数的功能移动到其调用函数中以减少函数调用的开销而不改变功能的一般技术。除了潜在地提高代码执行的性能之外，如果正确执行，这也可能导致尺寸减小。但是，如果操作不当，内联可以很容易地增加最终二进制文件的大小，而不是。</p>
+<p>良好的软件工程实践通常鼓励适当地封装范围和类责任。虽然这些策略在工程过程中很重要，但它们也可以在最终的字节码中留下一些优化机会。</p>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_obj_0113.png" alt="image"></p>
+<p>最简单的例子之一是包装函数。这些通常是添加的小功能，为工程师提供更简单的类API或调整功能以接受不同的参数列表。这也可能包括简单的访问器函数（setter / getter），这些函数必须包含在类API中，但在运行时可能永远不会被调用。在类文件的初始编译期间，不是立即显而易见哪些函数是多余的，但是当我们有我们的初始.dex文件时，我们可以看到哪些全局优化可用。</p>
+<p>此外，对于调用其他类的类，可能会有一些包装器函数调用其他包装函数 - 我们应该删除中间人。在许多情况下，这正是我们所做的。每当我们将一个函数内联到另一个函数中时，我们可以减少与函数跳转相关联的开销（和字节码）。</p>
+<p><img src="http://7xv27j.com1.z0.glb.clouddn.com/redex_function_0113.png" alt="image"></p>
+<p>自然，这需要非常仔细地做。很多时候，仍然有一些值由访问器或包装函数提供 - 运行时访问检查或多态性 - 但在实例中，当我们可以确保这种技术不会导致任何正确性错误，那么上行是字节码减少。</p>
+<p>还有另一种情况，内联可能是可能的。说一个父进程调用一个子函数，但需要先绕过一个中间函数。这可能是类型协方差检查的情况，其中我们要运行一些简单的运行时检查。与前面的例子不同，这个中间函数可能是微不足道的，但是我们不能完全剥离它; 它在运行时对我们有用。然而，这些函数中的许多都很小，以至于调用它们的字节码开销几乎与函数本身一样大。</p>
+<p>在一个简单的情况下，我们在父函数和子函数之间有一个1：1的调用关系，我们可能只是将迂回函数内联到父函数或子函数中，如上所述。</p>
+<p>然而，当父和子之间的调用关系是1：N或N：1 - 甚至N：N时，这变得更复杂。在这些情况下，鲁莽内联可以增加我们的二进制大小，而不是减少它！在这些情况下的伎俩是找出是否将绕行功能嵌入父节点或子节点（ren），或者是否没有改进的机会，我们应该完全中止内联。这些是在编译时基本不可能做出的决定，但可以通过分析.dex文件的全局状态来完成。</p>
+<h2 id="消除冗余代码"><a href="#消除冗余代码" class="headerlink" title="消除冗余代码"></a>消除冗余代码</h2><p>在任何大型项目中，死亡或不可达代码都不可避免地累积在源代码中。删除死代码通常是一个非常简单的技术，用于减少二进制大小，没有任何其他缺点。</p>
+<p>在某些方面，死代码消除类似于标记和清除垃圾回收。如果你开始一些你知道可以访问的入口点，例如清单文件中定义的主要活动，你可以运行分支和函数调用。在遍历函数调用的这个图表时，我们可以标记沿途访问的每个函数。在我们遍历了每个可能的分支和函数调用之后，我们可以假设所有未标记的函数都是可以安全删除的死代码。</p>
+<p>这种用于去除死代码的技术在理论上是简单的，但是还存在一些需要考虑的实际复杂性。在处理反射时，你需要小心，因为在构建时可能不明显函数被间接调用。您还需要注意通过布局或其他资源引用的类和函数 - 仅分析Dalvik字节码本身不足以识别类中的所有不同入口点。这些例子需要他们自己的专门技术来识别死代码，但从根本上说，它们的功能类似于简单的情况。</p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们希望这给了你一个Redex提供的品味。在这篇文章中，我们专注于减少字节码大小，但我们一直在努力的其他一些令人兴奋的优化管道，我们希望在未来分享。在此之前，敬请期待！</p>
+<p>感谢David Alves，David Tarjan和其他人帮助写这篇文章。</p>
+<p><a href="https://code.facebook.com/posts/1480969635539475/optimizing-android-bytecode-with-redex/" target="_blank" rel="noopener">英文原文</a></p>
+
+      
+    </div>
+
+    
+      
+
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>fldroid</li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/" title="基于 Facebook Redex 实现 Android APK 的压缩和优化">http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！</li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/优化/" rel="tag"># 优化</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/18/diff-cookie-session/" rel="next" title="Cookie 和 Session 的区别">
+                <i class="fa fa-chevron-left"></i> Cookie 和 Session 的区别
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/06/13/symmetric-key algorithm-vs-public-key-cryptography/" rel="prev" title="对称加密算法 VS 非对称加密算法">
+                对称加密算法 VS 非对称加密算法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+        <!-- Go to www.addthis.com/dashboard to customize your tools -->
+<div class="addthis_inline_share_toolbox">
+  <script type = "text/javascript" src = "//s7.addthis.com/js/300/addthis_widget.js#pubid=ra-5ae0274c305e7e15" async = "async" ></script>
+</div>
+
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">fldroid</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">22</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">分类</span>
+                  
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">18</span>
+                    <span class="site-state-item-name">标签</span>
+                  
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/fldroid" target="_blank" title="GitHub"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://weibo.com/p/1005052084548123" target="_blank" title="Weibo"><i class="fa fa-fw fa-weibo"></i>Weibo</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.jianshu.com/users/7b421c095afd" target="_blank" title="Jianshu"><i class="fa fa-fw fa-book"></i>Jianshu</a>
+                  
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:chaos.yee@gmail.com" target="_blank" title="E-Mail"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  
+                </span>
+              
+            </div>
+          
+
+          
+          
+
+          
+          
+            <div class="links-of-blogroll motion-element links-of-blogroll-block">
+              <div class="links-of-blogroll-title">
+                <i class="fa  fa-fw fa-link"></i>
+                友情链接
+              </div>
+              <ul class="links-of-blogroll-list">
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.linux.cn/" title="Linux.中国" target="_blank">Linux.中国</a>
+                  </li>
+                
+                  <li class="links-of-blogroll-item">
+                    <a href="http://www.jcodecraeer.com/" title="泡在网上的日子" target="_blank">泡在网上的日子</a>
+                  </li>
+                
+              </ul>
+            </div>
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#减少字节码"><span class="nav-number">1.</span> <span class="nav-text">减少字节码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缩小和压缩"><span class="nav-number">2.</span> <span class="nav-text">缩小和压缩</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内联"><span class="nav-number">3.</span> <span class="nav-text">内联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消除冗余代码"><span class="nav-number">4.</span> <span class="nav-text">消除冗余代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#摘要"><span class="nav-number">5.</span> <span class="nav-text">摘要</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2015 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">copyright all rights reserved</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.7.1</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/theme-next/hexo-theme-next">NexT.Gemini</a> v6.2.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/reading_progress/reading_progress.js"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.2.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.2.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=6.2.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=6.2.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.2.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.2.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.2.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://fldroid.disqus.com/count.js" async></script>
+  
+
+  
+    <script type="text/javascript">
+      var disqus_config = function () {
+        this.page.url = 'http://www.fldroid.com/2016/05/13/optimizing-android-bytecode-with-redex/';
+        this.page.identifier = '2016/05/13/optimizing-android-bytecode-with-redex/';
+        this.page.title = '基于 Facebook Redex 实现 Android APK 的压缩和优化';
+      };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://fldroid.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        loadComments();
+      
+    </script>
+  
+
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+  <script type="text/javascript" src="/js/src/exturl.js?v=6.2.0"></script>
+
+
+  
+  
+  
+  <script src="/lib/bookmark/bookmark.min.js?v=1.0"></script>
+  <script type="text/javascript">
+  
+    bookmark.scrollToMark('auto', "#更多");
+  
+  </script>
+
+
+  
+
+</body>
+</html>
