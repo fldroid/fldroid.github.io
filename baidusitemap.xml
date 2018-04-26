@@ -3,6 +3,9 @@
 
 
     
+    
+    
+    
   <url>
     <loc>http://www.fldroid.com/2017/03/06/replace-jcenter-to-aliyun-maven/</loc>
     <lastmod>2017-07-13T02:29:36.000Z</lastmod>
@@ -293,9 +296,9 @@
         <title>如何在Android上使用Https</title>
         <pubTime>2015-10-31T09:43:37.000Z</pubTime>
         
-        <tag>加密解密</tag>
-         
         <tag>网络请求</tag>
+         
+        <tag>加密解密</tag>
          
          
            

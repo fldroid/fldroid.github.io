@@ -2,6 +2,27 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.fldroid.com/about/index.html</loc>
+    
+    <lastmod>2018-04-26T02:05:54.973Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.fldroid.com/tags/index.html</loc>
+    
+    <lastmod>2018-04-26T02:05:33.034Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://www.fldroid.com/categories/index.html</loc>
+    
+    <lastmod>2018-04-26T02:05:15.838Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://www.fldroid.com/2017/03/06/replace-jcenter-to-aliyun-maven/</loc>
     
     <lastmod>2017-07-13T02:29:36.000Z</lastmod>
